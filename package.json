@@ -1,7 +1,7 @@
 {
     "name": "three.js-vr-hud",
     "filename": "three.js-vr-hud.js",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "This is a tool for the library three.js to perform a VR HUD layer.",
     "homepage": "https://github.com/trinketmage/three.js-vr-hud",
     "main": "./src/three.js-vr-hud.js",
