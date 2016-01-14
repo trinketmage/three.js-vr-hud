@@ -1,0 +1,28 @@
+{
+    "name": "three.js-vr-hud",
+    "filename": "three.js-vr-hud.js",
+    "version": "0.0.0",
+    "description": "This is a tool for the library three.js to perform a VR HUD layer.",
+    "homepage": "https://github.com/trinketmage/three.js-vr-hud",
+    "main": "./src/three.js-vr-hud.js",
+    "keywords": [
+        "three.js",
+        "VR",
+        "WEBVR",
+        "HUD",
+        "multi scenes VR"
+    ],
+    "maintainers": [{
+        "name": "Tran Rémi",
+        "email": "tranremi@live.fr",
+        "web": "http://trinketmage.free.fr"
+    }],
+    "repositories": [{
+        "type": "git",
+        "url": "https://github.com/trinketmage/doodleSVG.git"
+    }],
+    "ignore": [
+        "example/"
+    ]
+
+}

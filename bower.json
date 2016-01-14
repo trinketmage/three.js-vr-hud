@@ -1,0 +1,15 @@
+{
+    "name": "three.js-vr-hud",
+    "version": "0.0.0",
+    "description": "This is a tool for the library three.js to perform a VR HUD layer.",
+    "author": {
+        "name": "Tran Rémi"
+    },
+    "main": "./src/three.js-vr-hud.js",
+    "dependencies": {
+
+    },
+    "ignore":[
+      "example/"
+    ]
+}
