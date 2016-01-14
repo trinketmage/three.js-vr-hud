@@ -1,0 +1,1 @@
+THREE.VR.HUD = function(){};
