@@ -4,4 +4,4 @@
 
 * developed at BigBossStudio
 
-This tools for the library [three.js](http://threejs.org/) to perform a VR HUD layer.
+This is a tool for the library [three.js](http://threejs.org/) to perform a VR HUD layer.
