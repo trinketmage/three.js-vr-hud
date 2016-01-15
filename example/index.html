@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - level-of-details</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#000;
+				color:#fff;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+			#scene
+			{
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<div id="scene"></div>
+		<script src="libs/TWEEN.js"></script>
+		<script src="libs/three.min.js"></script>
+		<script src="libs/OrbitControls.js"></script>
+		<script src="libs/DeviceOrientationControls.js"></script>
+		<script src="libs/controls.js"></script>
+		<script src="../src/three.js-vr-hud.js"></script>
+		<script>
+	    	var baseTexturePath = 'textures/' ;
+
+	        var camera, scene, renderer;
+	        var controls;
+	        var element, container;
+	        var i, color, timer = 0;
+	        var cubes = [];
+	        var cubesArray = [];
+	        var clock = new THREE.Clock();
+	        var cube = new THREE.Group();
+	        var raycaster, mouse;
+	        var intersected;
+	        var timingAction = 140;	       
+	        var width, height;
+	        var HUD;
+
+	        init();
+	        animate();
+
+	        function init() {
+
+	            renderer = new THREE.WebGLRenderer({ antialias: true });
+	            renderer.setPixelRatio( window.devicePixelRatio );
+	            renderer.autoClear = false;
+
+	            element = renderer.domElement;
+            	container = document.getElementById("scene");
+	            container.appendChild(element);
+
+	            width = container.offsetWidth;
+	            height = container.offsetHeight;
+
+	            scene = new THREE.Scene();
+	            scene.fog = new THREE.Fog( 0xd8e0ec, 3000, 10000 );
+
+	            camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
+	            camera.position.set(0, 0, 0);
+	            scene.add(camera);
+
+
+	            HUD = new THREE.VRHUD(width, height);
+	            HUD.addCrosshair( new THREE.Mesh(
+	                new THREE.RingGeometry( .9, 1, 32),
+	                new THREE.MeshBasicMaterial( {
+	                    color: 0x00eeff,
+	                    transparent: true
+	                } )
+	            ));
+
+	            controls = new bbs.Game.Controls({
+	                camera: camera, 
+	                element: element, 
+	                container:container,
+	                noZoom: true, 
+	                noPan: true
+	            });
+
+	            raycaster = new THREE.Raycaster();
+
+	            cameraCoords = new THREE.Vector2();
+
+	         
+
+	            function createBackCube() {
+	                var url = baseTexturePath+"mapbox/";
+	                var urls = [url + "s_px.png", url + "s_nx.png",
+	                    url + "s_py.png", url + "s_ny.png",
+	                    url + "s_pz.png", url + "s_nz.png"];
+
+	                loaderCube = new THREE.CubeTextureLoader();
+	                textureCube = loaderCube.load(urls);
+	                textureCube.format = THREE.RGBFormat;
+	                textureCube.mapping = THREE.CubeReflectionMapping;
+
+	                var cubeShader = THREE.ShaderLib["cube"];
+	                var cubeMaterial = new THREE.ShaderMaterial({
+	                    fragmentShader: cubeShader.fragmentShader,
+	                    vertexShader: cubeShader.vertexShader,
+	                    uniforms: cubeShader.uniforms,
+	                    depthWrite: false,
+	                    side: THREE.BackSide
+	                });
+
+	                cubeMaterial.uniforms["tCube"].value = textureCube;
+
+	                cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(10000, 10000, 10000), cubeMaterial);
+	                cubeMesh.flipSided = true;
+
+	                return cubeMesh;
+	            };
+	            cameraCoords = {x:camera.position.x, y: camera.position.y};    
+
+	                    objectCoords = {x:50, y:10, z:0}
+
+	            backCube = createBackCube();
+	            scene.add(backCube);
+
+	            function createGround()
+	            {
+	                groundBasic = new THREE.MeshBasicMaterial( { color: 0xeeeeee} );
+	                ground = new THREE.Mesh( new THREE.PlaneBufferGeometry( 50000, 50000 ), groundBasic );
+	                ground.position.y = - 3000;
+	                ground.rotation.x = - Math.PI / 2;
+	                scene.add( ground );
+
+	                ground.castShadow = false;
+	                ground.receiveShadow = true;
+	            }
+	            createGround();
+
+	            for(var i=0; i<20; i++){
+			        geom = new THREE.BoxGeometry(5, 5, 5);
+			        mat = new THREE.MeshBasicMaterial({
+			            color: 0xff0000,
+			            transparent: true
+			        });
+
+			       	var cube = new THREE.Mesh(geom, mat);
+	                cube.position.set(50, 10, 10*i);
+                	cubesArray.push(cube);
+	                scene.add(cube);
+	            }
+	        }
+
+	        function resize() {
+	            width = container.offsetWidth;
+	            height = container.offsetHeight;
+
+	            camera.aspect = width / height;
+	            camera.updateProjectionMatrix();
+
+	            HUD.resize(width, height);
+
+	            renderer.setSize(width, height);
+	        }
+
+	        function update(dt) {
+	            resize();
+	            camera.updateProjectionMatrix();
+	            controls.update(dt);
+	        }
+
+
+	        function render(dt) {
+
+	            var time = Date.now() * 0.005;
+
+	            if(cubes.length > 0){
+	                for(var i; i<cubes.length; i++){
+	                    cubes[i].render();
+	                }
+	            }
+
+	            raycaster.setFromCamera( cameraCoords, controls.controls.object );   
+
+	            var intersects = raycaster.intersectObjects(cubesArray);
+
+	            for ( var i = 0; i < cubesArray.length; i++ ) {
+
+	                cubesArray[i].material.color.set( 0xff0000 );
+	                if(intersects.length == 0){
+	                    timer=0;
+	                    value = 0.99999;
+	                }
+	            }
+
+	            if (intersects.length != 0) {
+	                if(timer >= timingAction){
+
+	                    timer=0;
+	                    intersects[ 0 ].object.material.color.set( 0x00ffff );
+	                    objectCoords = intersects[ 0 ].object.position;
+
+	                    controls.moveCamera(intersects[ 0 ].object.position);
+	                }
+	                else{
+	                    intersects[ 0 ].object.material.color.set( 0xffff00 );
+	                }
+	                timer++;
+	            }
+
+	            HUD.crosshair.position.z = -45;
+	            if(controls.controls.enabled)
+	            {
+	                var scale = Math.min(-.1,(timer-timingAction)/timingAction);
+	                HUD.crosshair.scale.set(scale,scale,scale);
+	            }
+
+	            HUD.render(scene, camera, renderer, width, height);
+	        }
+
+	        function animate(t) {
+	            requestAnimationFrame(animate);
+
+	            update(clock.getDelta());
+
+	            TWEEN.update();
+
+	            render(clock.getDelta());
+	        }
+
+		</script>
+	</body>
+</html>
